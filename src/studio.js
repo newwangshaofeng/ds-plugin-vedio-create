@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { extractJson, stripFence } from './ai.js'
 import {
   charactersPrompts, clipsPrompts, planPrompts, reviewPrompts, revisePrompts, rhythmPrompts, scriptPrompts, shotsPrompts, STEP_LABEL,
+  withEvolved,
 } from './prompts.js'
 
 export const PROJECT_STEPS = ['plan', 'characters']
@@ -193,7 +194,7 @@ function scopeText(step, scope, current) {
 }
 
 export function buildPrompts(project, step, ep, { comment = '', scope = null, revise = false } = {}) {
-  const base = BUILDERS[step](project, ep)
+  const base = withEvolved(step, BUILDERS[step](project, ep))
   const current = getValue(project, step, ep)
   const has = current && !(Array.isArray(current) && !current.length)
   if (!revise && !scope) return base

@@ -12,6 +12,21 @@ export function knowledge(name) {
   return cache.get(name)
 }
 
+let evolvedOverride = null
+/** 自我进化（scripts/evolve.mjs）试验候选规则时临时替换 evolved.md 的内容。 */
+export function setEvolvedOverride(text) { evolvedOverride = text }
+
+/** knowledge/evolved.md 里「## 步骤名」下的规则：自我进化迭代沉淀下来的经验，追加到对应步骤的系统提示词末尾。 */
+export function evolvedRules(step, source = evolvedOverride ?? knowledge('evolved')) {
+  const match = new RegExp(`^## ${step}\\s*$([\\s\\S]*?)(?=^## |(?![\\s\\S]))`, 'm').exec(source)
+  return match?.[1].trim() ?? ''
+}
+
+export function withEvolved(step, prompts) {
+  const rules = evolvedRules(step)
+  return rules ? { ...prompts, system: `${prompts.system}\n\n【迭代沉淀的额外要求（优先遵守）】\n${rules}` } : prompts
+}
+
 export const STEP_LABEL = {
   plan: '爆款策划', characters: '人物小传', rhythm: '节奏爽点', script: '分集剧本', shots: '分镜表', clips: '视频提示词', review: '爆款体检',
 }
