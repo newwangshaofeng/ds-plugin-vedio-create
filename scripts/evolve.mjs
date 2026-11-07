@@ -181,9 +181,15 @@ async function main() {
       log(`  合成后 ${ev.mean}（基线 ${baseline.mean}）`)
       if (ev.mean >= baseline.mean) { rules = next; baseline = ev; adopted = true; await writeFile(EVOLVED, rules) }
     }
+    // 合成反而退步时，退回到单独提升最多的那个候选（它已经在同样任务上测过）。
+    const best = probes.reduce((a, b) => (b.ev.mean > (a?.ev.mean ?? -1) ? b : a), null)
+    if (!adopted && best && best.ev.mean > baseline.mean) {
+      rules = apply(rules, best.c.edits); baseline = best.ev; adopted = true; await writeFile(EVOLVED, rules)
+      log(`  合成未通过，改用最佳单一候选 ${best.ev.mean}`)
+    }
     lessons += `\n## 第 ${round} 轮（${adopted ? '采纳' : '未采纳'}，${baseline.mean} 分）\n${(composed.lessons ?? []).map(l => `- ${l}`).join('\n')}\n`
     await writeFile(lessonsFile, lessons)
-    history.push({ round, adopted, mean: baseline.mean, dims: baseline.dims, candidates: probes.map(p => ({ hypothesis: p.c.hypothesis, mean: p.ev.mean })), reason: composed.reason })
+    history.push({ round, adopted, mean: baseline.mean, dims: baseline.dims, candidates: probes.map(p => ({ hypothesis: p.c.hypothesis, edits: p.c.edits, mean: p.ev.mean })), reason: composed.reason })
     await writeFile(join(OUT, 'history.json'), JSON.stringify(history, null, 2))
     await writeFile(join(OUT, `round-${round}-sample.md`), summary(baseline))
   }
