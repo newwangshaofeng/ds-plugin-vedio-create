@@ -1,0 +1,34 @@
+{
+  "name": "dsh-drama-studio",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness 插件：短剧工作台。一句话创意 → 爆款策划 → 人物小传 → 节奏爽点 → 分集剧本 → 拉片分镜表 → Google Flow / Seedance 视频提示词，每一步都能 AI 重写、提意见修改或手动改。",
+  "type": "module",
+  "main": "src/host.js",
+  "exports": {
+    ".": "./src/host.js",
+    "./client": "./dist/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": { "platform": "web", "inject": ["@deepseek-ai/dsh-client-runtime"] }
+  },
+  "engines": { "node": ">=20", "dsh": ">=0.2.1-rc.5 <0.3.0" },
+  "keywords": ["dsh", "deepseek-harness", "dsh-plugin", "短剧", "分镜", "google-flow", "veo", "seedance"],
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/newwangshaofeng/ds-plugin-vedio-create.git" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "watch": "node scripts/build.mjs --watch",
+    "test": "node --test test/*.test.js",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.10"
+  },
+  "files": ["src", "dist", "cordis.patch.yml", "README.md", "LICENSE"]
+}
