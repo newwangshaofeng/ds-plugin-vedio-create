@@ -102,7 +102,7 @@ function CharacterCard({ ch }) {
   const [more, setMore] = React.useState(false)
   return (
     <div className="ds-card ds-char">
-      <ImageSlot image={ch.image} slot={{ kind: 'character', id: ch.id }} prompt={ch.imagePrompt} ratio="3:4" />
+      <ImageSlot image={ch.image} slot={{ kind: 'character', cid: ch.id }} prompt={ch.imagePrompt} ratio="3:4" />
       <div className="ds-char-body">
         <div className="ds-grid3">
           <Field label="姓名"><input className="ds-input" value={d.name} onChange={e => set('name', e.target.value)} /></Field>

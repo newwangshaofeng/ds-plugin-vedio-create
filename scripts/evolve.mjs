@@ -53,12 +53,18 @@ async function chat(system, user, maxTokens = 16000) {
   })
 }
 
+/** 模型偶尔输出坏 JSON：重试两次。 */
+async function chatJson(system, user, maxTokens) {
+  for (let attempt = 0; ; attempt++) {
+    try { return extractJson(await chat(system, user, maxTokens)) } catch (err) { if (attempt >= 2) throw err }
+  }
+}
+
 async function runStep(project, step, ep, rules) {
   setEvolvedOverride(rules)
   const prompts = buildPrompts(project, step, ep)
   setEvolvedOverride(null)
-  const text = await chat(prompts.system, prompts.user, prompts.maxTokens)
-  const raw = prompts.json ? extractJson(text) : text
+  const raw = prompts.json ? await chatJson(prompts.system, prompts.user, prompts.maxTokens) : await chat(prompts.system, prompts.user, prompts.maxTokens)
   setValue(project, step, ep, normalizeStep(step, raw, project, ep), 'evolve')
 }
 
@@ -103,7 +109,7 @@ async function judge(project) {
 <script>${ep.script}</script>
 <shots>${JSON.stringify(ep.shots.map(({ image, ...s }) => s))}</shots>
 <clips>${JSON.stringify(ep.clips.map(c => ({ no: c.no, shots: c.shots, seconds: c.seconds, prompt: c.prompt })))}</clips>`
-  const out = extractJson(await chat(system, user, 12000))
+  const out = await chatJson(system, user, 12000)
   const scores = Object.fromEntries(DIMS.map(d => [d, Number(out.scores?.[d]) || 0]))
   const rules = ruleChecks(project)
   const avg = DIMS.reduce((s, d) => s + scores[d], 0) / DIMS.length
@@ -124,7 +130,7 @@ async function propose(rules, ev, lessons) {
 你能改的只有「迭代规则」：每条规则挂在某一步，追加到该步系统提示词末尾。根据评审结果提出 ${CANDIDATES} 个互相独立的候选修改，每个候选 1-3 条规则，针对最低分维度、要求具体可执行（不要空话，比如「台词更好」不行，要写清怎么做）。可以删除或改写已有规则。
 只输出 JSON：{"candidates":[{"hypothesis":"想解决什么问题、为什么有效","edits":[{"step":"rhythm|script|shots|clips","op":"add|replace_all","rules":["规则1","规则2"]}]}]}`
   const user = `<current_rules>\n${rules}\n</current_rules>\n<lessons>\n${lessons}\n</lessons>\n<evaluation mean="${ev.mean}">\n${summary(ev)}\n</evaluation>`
-  return extractJson(await chat(system, user, 16000)).candidates ?? []
+  return (await chatJson(system, user, 16000)).candidates ?? []
 }
 
 function apply(rules, edits) {
@@ -145,7 +151,7 @@ async function compose(rules, baseline, probes) {
 同时写 1-3 条「经验教训」，供以后提出修改时参考（例如：哪类规则有效/无效）。
 只输出 JSON：{"edits":[{"step":"...","op":"replace_all","rules":["..."]}],"lessons":["..."],"reason":"..."}（edits 只需包含有变化的步骤；没有任何候选有效时 edits 为空数组）`
   const user = `<current_rules>\n${rules}\n</current_rules>\n<baseline mean="${baseline.mean}">${JSON.stringify(baseline.dims)}</baseline>\n${probes.map((p, i) => `<candidate id="${i + 1}" mean="${p.ev.mean}" delta="${(p.ev.mean - baseline.mean).toFixed(1)}">\n假设：${p.c.hypothesis}\n修改：${JSON.stringify(p.c.edits)}\n各维度：${JSON.stringify(p.ev.dims)}\n评审问题：${p.ev.runs.flatMap(r => r.review.critique).slice(0, 6).join('；')}\n</candidate>`).join('\n')}`
-  return extractJson(await chat(system, user, 16000))
+  return chatJson(system, user, 16000)
 }
 
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a)

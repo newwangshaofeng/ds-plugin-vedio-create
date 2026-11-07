@@ -133,7 +133,7 @@ export function importCanvas(buffer, project, ep) {
     }
     for (const ch of project.characters ?? []) {
       const got = pick(ids.char(ch.id, 'config'), ids.char(ch.id, 'image'))
-      if (got) items.push({ slot: { kind: 'character', id: ch.id }, label: `角色·${ch.name}`, ...got })
+      if (got) items.push({ slot: { kind: 'character', cid: ch.id }, label: `角色·${ch.name}`, ...got })
     }
     for (const s of project.episodeData?.[ep]?.shots ?? []) {
       const got = pick(ids.shot(ep, s.no, 'config'), ids.shot(ep, s.no, 'image'))

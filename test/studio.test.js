@@ -70,6 +70,9 @@ test('scoped AI revision, manual edit, upload, history restore and undo', async 
 
   const up = await call('POST', `upload?id=${id}&kind=shot&ep=1&no=2`, Buffer.from('89504e47', 'hex'), { 'content-type': 'image/png' })
   assert.equal(up.status, 200)
+  const cid = (await call('GET', `project?id=${id}`)).json().project.characters[0].id
+  const charUp = await call('POST', `upload?id=${id}&kind=character&cid=${cid}`, Buffer.from('89504e47', 'hex'), { 'content-type': 'image/png' })
+  assert.equal(charUp.status, 200, 'character upload keeps project id and character id apart')
   await call('POST', 'step/generate', { id, step: 'shots', ep: 1, scope: { no: 2 }, revise: true, comment: '更有冲击力' })
   await settle()
   assert.match(calls.at(-1).system, /只修改第 2 镜/)

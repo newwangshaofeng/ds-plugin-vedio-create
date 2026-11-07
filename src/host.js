@@ -78,9 +78,9 @@ function checkStep(step) {
 }
 
 /** 定位一张图片挂在哪：角色定妆图或某一镜的分镜图。 */
-function imageSlot(project, { kind, ep, no, id }) {
+function imageSlot(project, { kind, ep, no, cid }) {
   if (kind === 'character') {
-    const ch = project.characters.find(c => c.id === id)
+    const ch = project.characters.find(c => c.id === cid)
     if (!ch) throw fail(404, '角色不存在')
     return ch
   }
