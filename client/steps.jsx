@@ -1,5 +1,5 @@
 import React from 'react'
-import { download, fileUrl, generate, saveStep, setState, uploadImage, useStudio, api, loadProject, safe } from './api.js'
+import { download, exportCanvas, importCanvas, fileUrl, generate, saveStep, setState, uploadImage, useStudio, api, loadProject, safe } from './api.js'
 import { AiBar, Area, Btn, CopyBtn, Empty, Field, History, SaveBar, useDraft } from './ui.jsx'
 
 const FLOW_URL = 'https://labs.google/fx/tools/flow'
@@ -169,7 +169,8 @@ export function ShotsStep() {
   return (
     <section>
       <StepHead step="shots" ep={ep} title={`④ 第${ep}集 · 拉片分镜表`} desc="每一镜都有分镜图提示词：复制去网页生图（Flow / 即梦 / Midjourney 都行），再拖回来。每镜都能单独让 AI 改或手动改。">
-        {shots.length ? <span className="ds-pill">{shots.length} 镜 · {total} 秒 · 分镜图 {done}/{shots.length}</span> : null}
+                      {shots.length ? <span className="ds-pill">{shots.length} 镜 · {total} 秒 · 分镜图 {done}/{shots.length}</span> : null}
+              {shots.length ? <CanvasBtns ep={ep} /> : null}
       </StepHead>
       <AiBar step="shots" ep={ep} has={shots.length > 0} label="分镜表" />
       {!shots.length ? <Empty>需要先有本集剧本。点「AI 生成分镜表」。</Empty> : shots.map(s => <ShotCard key={`${ep}-${s.no}`} shot={s} ep={ep} ratio={project.config.ratio} />)}
@@ -307,6 +308,17 @@ const PUBLISH_CHECKS = [
   '视频前 5 秒标注「AI 生成」或加 AI 水印，发布时勾选平台 AI 内容声明',
   '不恶搞他人动漫/影视 IP',
 ]
+
+function CanvasBtns({ ep }) {
+  const input = React.useRef(null)
+  return (
+    <>
+      <Btn kind="sm" onClick={() => exportCanvas(ep)} title="导出成无限画布工程包：每镜「提示词→生图配置」已连好，角色定妆图自动连成参考图">导出到无限画布</Btn>
+      <Btn kind="sm" onClick={() => input.current?.click()} title="在无限画布里生成好图后，点画布「导出」得到 zip，再从这里导回">从画布导回图片</Btn>
+      <input ref={input} type="file" accept=".zip,application/zip" hidden onChange={e => { importCanvas(e.target.files?.[0], ep); e.target.value = '' }} />
+    </>
+  )
+}
 
 function NextBtn({ step, label }) {
   return <div className="ds-next"><Btn kind="primary" onClick={() => setState({ step })}>{label} →</Btn></div>

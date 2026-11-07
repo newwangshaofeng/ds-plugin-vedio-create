@@ -112,6 +112,30 @@ export async function download(format) {
   })
 }
 
+export async function exportCanvas(ep) {
+  await safe(async () => {
+    const res = await fetch(`${BASE}canvas?id=${encodeURIComponent(state.projectId)}&ep=${ep}`)
+    if (!res.ok) throw new Error('导出失败')
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(await res.blob())
+    a.download = `${state.project?.title || '短剧'}-第${ep}集-无限画布.zip`
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000)
+    toast('已导出：在无限画布首页点「导入」选这个 zip')
+  })
+}
+
+export async function importCanvas(file, ep) {
+  if (!file) return
+  await safe(async () => {
+    const res = await fetch(`${BASE}canvas/import?id=${encodeURIComponent(state.projectId)}&ep=${ep}`, { method: 'POST', headers: { 'content-type': 'application/zip' }, body: file })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data.error || '导入失败')
+    await loadProject()
+    toast(data.imported.length ? `已导回 ${data.imported.length} 张图：${data.imported.join('、')}` : '画布里没有找到新生成的图片', data.imported.length ? 'ok' : 'error')
+  })
+}
+
 export async function copy(text) {
   try {
     await navigator.clipboard.writeText(text)

@@ -78,8 +78,38 @@ export function extractJson(text) {
   try {
     return JSON.parse(raw)
   } catch {
-    return JSON.parse(raw.replace(/,\s*([}\]])/g, '$1'))
+    try {
+      return JSON.parse(raw.replace(/,\s*([}\]])/g, '$1'))
+    } catch (err) {
+      const repaired = repairTruncated(body.slice(start))
+      if (!repaired) throw err
+      return JSON.parse(repaired)
+    }
   }
+}
+
+/** 输出被截断时（长分镜表常见），保留到最后一个完整的数组元素，再补齐括号。 */
+export function repairTruncated(text) {
+  const stack = []
+  let inString = false
+  let cut = null
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+    if (inString) {
+      if (ch === '\\') i++
+      else if (ch === '"') inString = false
+      continue
+    }
+    if (ch === '"') inString = true
+    else if (ch === '{' || ch === '[') stack.push(ch)
+    else if (ch === '}' || ch === ']') {
+      stack.pop()
+      if (!stack.length) return null
+      if (stack.at(-1) === '[') cut = { at: i + 1, stack: [...stack] }
+    }
+  }
+  if (!cut) return null
+  return text.slice(0, cut.at) + cut.stack.reverse().map(c => (c === '[' ? ']' : '}')).join('')
 }
 
 /** 去掉模型偶尔包在 Markdown 外面的代码块。 */

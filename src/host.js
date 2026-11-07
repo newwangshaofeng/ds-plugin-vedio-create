@@ -4,6 +4,7 @@ import { createReadStream } from 'node:fs'
 import { extname, join } from 'node:path'
 import { callModel, defaultSelection, modelInfo, modelStatus } from './ai.js'
 import { exportMarkdown, exportXlsx } from './export.js'
+import { exportCanvas, importCanvas } from './canvas.js'
 import { createProject, episode, EPISODE_STEPS, getValue, historyKey, newId, normalizeConfig, normalizeStep, setValue, STEPS, Studio } from './studio.js'
 import { Store } from './store.js'
 
@@ -110,6 +111,14 @@ export async function route(ctx, store, studio, req, res) {
       return json(res, 200, { project, jobs: studio.listJobs(project.id), canUndo: store.undo.length > 0, undoLabel: store.undo.at(-1)?.label ?? null })
     }
     if (path === 'jobs') return json(res, 200, { jobs: studio.listJobs(q.id) })
+    if (path === 'canvas') {
+      const project = findProject(await store.read(), q.id)
+      const ep = Number(q.ep) || 1
+      const buffer = await exportCanvas(project, ep, store.filesDir)
+      res.setHeader('content-type', 'application/zip')
+      res.setHeader('content-disposition', `attachment; filename*=UTF-8''${encodeURIComponent(`${project.title || 'drama'}-第${ep}集-无限画布`)}.zip`)
+      return res.end(buffer)
+    }
     if (path === 'export') {
       const state = await store.read()
       const project = findProject(state, q.id)
@@ -128,6 +137,33 @@ export async function route(ctx, store, studio, req, res) {
   }
   if (method !== 'POST') return json(res, 405, { error: '不支持的请求方法' })
 
+  if (path === 'canvas/import') {
+    const buffer = await readBuffer(req, MAX_UPLOAD * 10)
+    const ep = Number(q.ep) || 1
+    let items
+    try {
+      items = importCanvas(buffer, findProject(await store.read(), q.id), ep)
+    } catch (err) {
+      throw fail(400, err.message?.includes('projects.json') ? err.message : '无法读取这个文件，请上传无限画布「导出」得到的 zip')
+    }
+    const names = []
+    for (const item of items) {
+      const name = `${newId('img')}${item.ext}`
+      await writeFile(join(store.filesDir, name), item.bytes)
+      names.push(name)
+    }
+    const old = await store.mutate('从无限画布导回图片', state => {
+      const project = findProject(state, q.id)
+      return items.map((item, i) => {
+        const slot = imageSlot(project, item.slot)
+        const previous = slot.image
+        slot.image = names[i]
+        return previous
+      })
+    })
+    void old
+    return json(res, 200, { imported: items.map(i => i.label) })
+  }
   if (path === 'upload') {
     const type = (req.headers['content-type'] || '').split(';')[0].trim().toLowerCase()
     const ext = UPLOAD_EXT[type === 'image/jpg' ? 'image/jpeg' : type]

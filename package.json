@@ -11,13 +11,35 @@
     "./package.json": "./package.json"
   },
   "dsh": {
-    "bundle": { "patch": "./cordis.patch.yml" },
-    "client": { "platform": "web", "inject": ["@deepseek-ai/dsh-client-runtime"] }
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime"
+      ]
+    }
   },
-  "engines": { "node": ">=20", "dsh": ">=0.2.1-rc.5 <0.3.0" },
-  "keywords": ["dsh", "deepseek-harness", "dsh-plugin", "短剧", "分镜", "google-flow", "veo", "seedance"],
+  "engines": {
+    "node": ">=20",
+    "dsh": ">=0.2.1-rc.5 <0.3.0"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "短剧",
+    "分镜",
+    "google-flow",
+    "veo",
+    "seedance"
+  ],
   "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/newwangshaofeng/ds-plugin-vedio-create.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/newwangshaofeng/ds-plugin-vedio-create.git"
+  },
   "scripts": {
     "build": "node scripts/build.mjs",
     "watch": "node scripts/build.mjs --watch",
@@ -25,10 +47,17 @@
     "prepack": "npm run build"
   },
   "dependencies": {
-    "exceljs": "^4.4.0"
+    "exceljs": "^4.4.0",
+    "fflate": "^0.8.2"
   },
   "devDependencies": {
     "esbuild": "^0.25.10"
   },
-  "files": ["src", "dist", "cordis.patch.yml", "README.md", "LICENSE"]
+  "files": [
+    "src",
+    "dist",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ]
 }

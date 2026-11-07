@@ -93,7 +93,7 @@ ${PLAN_SHAPE}
 
 ${GUARD}`
   const user = `<material>${JSON.stringify(projectBrief(project))}</material>`
-  return { system, user, maxTokens: 8000, json: true }
+  return { system, user, maxTokens: 16000, json: true }
 }
 
 // ———————————————————— 2 人物小传 ————————————————————
@@ -124,7 +124,7 @@ ${CHAR_SHAPE}
 
 ${GUARD}`
   const user = `<material>${JSON.stringify({ 项目: projectBrief(project), 策划: planBrief(project.plan), 分集: (project.plan?.episodes ?? []).slice(0, 12) })}</material>`
-  return { system, user, maxTokens: 8000, json: true }
+  return { system, user, maxTokens: 16000, json: true }
 }
 
 // ———————————————————— 3 节奏爽点 ————————————————————
@@ -154,7 +154,7 @@ ${knowledge('rhythm')}
 
 只输出 Markdown，不要代码块。${GUARD}`
   const user = `<material>${JSON.stringify({ 项目: projectBrief(project), 策划: planBrief(project.plan), 本集大纲: ep, 人物: characterBrief(project.characters), 上一集结尾: prevEpisodeTail(project, no) })}</material>`
-  return { system, user, maxTokens: 4000 }
+  return { system, user, maxTokens: 8000 }
 }
 
 // ———————————————————— 4 分集剧本 ————————————————————
@@ -181,7 +181,7 @@ ${knowledge('writing')}
 只输出剧本正文（Markdown），第一行是「# 第${no}集 ${ep.title || ''}」，不要代码块，不要额外解释。${GUARD}`
   const user = `<material>${JSON.stringify({ 项目: projectBrief(project), 策划: planBrief(project.plan), 本集大纲: ep, 人物: characterBrief(project.characters), 上一集结尾: prevEpisodeTail(project, no) })}</material>
 <rhythm>${data.rhythm || '（未生成节奏表，请自行按节奏骨架设计）'}</rhythm>`
-  return { system, user, maxTokens: 8000 }
+  return { system, user, maxTokens: 16000 }
 }
 
 // ———————————————————— 5 分镜表 ————————————————————
@@ -227,7 +227,7 @@ ${SHOT_SHAPE}
 ${GUARD}`
   const user = `<material>${JSON.stringify({ 项目: projectBrief(project), 人物: characterBrief(project.characters), 画风: project.plan?.visualStyle })}</material>
 <script>${data.script || ''}</script>`
-  return { system, user, maxTokens: 12000, json: true }
+  return { system, user, maxTokens: 32000, json: true }
 }
 
 // ———————————————————— 6 视频提示词 ————————————————————
@@ -273,7 +273,7 @@ ${CLIP_SHAPE(target)}
 
 ${GUARD}`
   const user = `<material>${JSON.stringify({ 项目: projectBrief(project), 人物: characterBrief(project.characters), 画风: project.plan?.visualStyle, 分镜表: shots })}</material>`
-  return { system, user, maxTokens: 12000, json: true }
+  return { system, user, maxTokens: 32000, json: true }
 }
 
 // ———————————————————— 7 爆款体检 ————————————————————
@@ -302,7 +302,7 @@ issues 最多 8 条，按影响大小排序。${GUARD}`
 <script>${data.script || '（无）'}</script>
 <shots>${JSON.stringify((data.shots ?? []).map(({ image, ...s }) => s))}</shots>
 <clips>${JSON.stringify(data.clips ?? [])}</clips>`
-  return { system, user, maxTokens: 4000, json: true }
+  return { system, user, maxTokens: 8000, json: true }
 }
 
 // ———————————————————— 修改（AI 二次生成 / 按意见修改） ————————————————————
