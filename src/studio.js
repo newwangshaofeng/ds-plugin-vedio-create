@@ -11,7 +11,7 @@ export const STEPS = [...PROJECT_STEPS, ...EPISODE_STEPS]
 const BUILDERS = { plan: planPrompts, characters: charactersPrompts, rhythm: rhythmPrompts, script: scriptPrompts, shots: shotsPrompts, clips: clipsPrompts, review: reviewPrompts }
 const MAX_HISTORY = 12
 
-export const DEFAULT_CONFIG = { genre: '', audience: '', episodes: 10, epSeconds: 90, style: '国漫 3D 写实风格，电影感光影', ratio: '9:16', videoTarget: 'flow', notes: '' }
+export const DEFAULT_CONFIG = { genre: '', audience: '', episodes: 10, epSeconds: 90, style: '国漫 3D 写实风格，电影感光影', ratio: '9:16', videoTarget: 'flow', notes: '', reference: '' }
 
 export const newId = (prefix = 'p') => `${prefix}_${randomUUID().slice(0, 8)}`
 const text = (value, max = 4000) => (typeof value === 'string' ? value.trim().slice(0, max) : typeof value === 'number' ? String(value) : '')
@@ -28,6 +28,7 @@ export function normalizeConfig(input = {}, base = DEFAULT_CONFIG) {
     ratio: ['9:16', '16:9', '1:1', '3:4', '4:3'].includes(input.ratio) ? input.ratio : base.ratio,
     videoTarget: ['flow', 'seedance'].includes(input.videoTarget) ? input.videoTarget : base.videoTarget,
     notes: text(input.notes ?? base.notes, 1000),
+    reference: text(input.reference ?? base.reference ?? '', 4000),
   }
 }
 
@@ -76,7 +77,7 @@ export function normalizeCharacters(raw, previous = []) {
 export function normalizeShot(s = {}, keep = {}) {
   return {
     no: 0, scene: text(s.scene, 80), time: text(s.time, 40), characters: text(s.characters, 120),
-    size: text(s.size, 20), camera: text(s.camera, 120), visual: text(s.visual, 600), dialogue: text(s.dialogue, 600), sound: text(s.sound, 300),
+    size: text(s.size, 20), camera: text(s.camera, 200), blocking: text(s.blocking, 300), acting: text(s.acting, 400), visual: text(s.visual, 600), dialogue: text(s.dialogue, 600), sound: text(s.sound, 300),
     seconds: num(s.seconds, 1, 60, 3), dynamic: text(s.dynamic, 20), transition: text(s.transition, 20), note: text(s.note, 300),
     imagePrompt: text(s.imagePrompt, 2000), image: typeof (s.image ?? keep.image) === 'string' ? (s.image ?? keep.image) : '',
   }
@@ -91,7 +92,7 @@ export function normalizeClip(c = {}) {
   const shots = asArray(c.shots).map(Number).filter(Number.isFinite)
   return {
     no: 0, shots, seconds: num(c.seconds, 1, 30, 8), mode: text(c.mode, 20).split(/[（(\s]/)[0] || 'text',
-    refs: text(c.refs, 400), prompt: text(c.prompt, 6000), tips: text(c.tips, 300),
+    refs: text(c.refs, 400), prompt: text(c.prompt, 6000), gridPrompt: text(c.gridPrompt, 4000), tips: text(c.tips, 300),
   }
 }
 

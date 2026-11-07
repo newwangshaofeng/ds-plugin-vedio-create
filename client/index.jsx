@@ -18,7 +18,7 @@ const GENRES = ['逆袭打脸', '重生复仇', '甜宠恋爱', '战神归来', 
 const STYLES = ['国漫 3D 写实风格，电影感光影', '日系二次元动漫，明亮色彩', '真人电影质感，写实摄影', '古风水墨国潮', '赛博朋克霓虹', '韩漫精致厚涂']
 
 function NewProject() {
-  const [f, setF] = React.useState({ idea: '', genre: '', episodes: 10, epSeconds: 90, style: STYLES[0], ratio: '9:16', videoTarget: 'flow', notes: '' })
+  const [f, setF] = React.useState({ idea: '', genre: '', episodes: 10, epSeconds: 90, style: STYLES[0], ratio: '9:16', videoTarget: 'flow', notes: '', reference: '' })
   const [busy, setBusy] = React.useState(false)
   const set = (k, v) => setF({ ...f, [k]: v })
   const start = async (auto) => {
@@ -43,6 +43,10 @@ function NewProject() {
       </div>
       <Field label="画风"><div className="ds-chips">{STYLES.map(s => <button type="button" key={s} className={f.style === s ? 'is-on' : ''} onClick={() => set('style', s)}>{s}</button>)}</div><input className="ds-input" value={f.style} onChange={e => set('style', e.target.value)} /></Field>
       <Field label="补充要求（可选）"><Area value={f.notes} onChange={v => set('notes', v)} placeholder="例：女频向，男主高冷；避免血腥" /></Field>
+      <details className="ds-more">
+        <summary>进阶：参考一部爆款（可选，强烈推荐）</summary>
+        <Field label="爆款拉片参考" hint="贴一段你在拉的爆款短剧：每个镜头的景别、运镜、这一段说什么。AI 会照搬它的节奏和镜头结构，换成你的故事"><Area rows={4} value={f.reference} onChange={v => set('reference', v)} placeholder={'例：\n镜1 特写 女主被泼红酒（0-2秒）\n镜2 中景 婆婆指着鼻子骂「你也配进我家门？」\n镜3 全景 宾客哄笑……'} /></Field>
+      </details>
       <div className="ds-row">
         <Btn kind="primary" busy={busy} disabled={!f.idea.trim()} onClick={() => start(true)}>开始创作（AI 自动出策划+人物）</Btn>
         <Btn busy={busy} disabled={!f.idea.trim()} onClick={() => start(false)}>只建项目</Btn>

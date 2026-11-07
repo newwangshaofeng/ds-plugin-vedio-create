@@ -4,7 +4,7 @@ import { createServer } from 'node:http'
 
 const PORT = Number(process.argv[2] ?? 4399)
 
-const shot = (no, size, visual, dialogue, seconds = 3) => ({ no, scene: '内景·订婚宴大厅', time: '夜·水晶灯暖光', characters: '林墨、苏婉', size, camera: no % 2 ? '平视，缓慢推近' : '低角度仰拍', visual, dialogue, sound: '【环境】宾客窃窃私语', seconds, dynamic: no === 5 ? '动・特效' : '动・基础', transition: '切', note: no === 5 ? '▲爽点' : '', imagePrompt: `vertical 9:16, ${size} shot, Lin Mo (young man, short black hair, faded delivery jacket) in a luxury banquet hall, cinematic lighting, 3D Chinese animation style, no text` })
+const shot = (no, size, visual, dialogue, seconds = 3) => ({ no, scene: '内景·订婚宴大厅', time: '夜·水晶灯暖光', characters: '林墨、苏婉', size, camera: no % 2 ? '平视，起幅中景缓慢推近至近景' : '低角度仰拍', blocking: '林墨画面左侧面朝右，苏婉画面右侧面朝左', acting: '林墨视线下垂，抬眼瞬间眼神转冷', visual, dialogue, sound: '【环境】宾客窃窃私语', seconds, dynamic: no === 5 ? '动・特效' : '动・基础', transition: '切', note: no === 5 ? '▲爽点' : '', imagePrompt: `vertical 9:16, ${size} shot, Lin Mo (young man, short black hair, faded delivery jacket) in a luxury banquet hall, cinematic lighting, 3D Chinese animation style, no text` })
 
 export function answer(system, user) {
   const scoped = /只修改第 (\d+) (镜|段视频)/.exec(system)
@@ -13,7 +13,7 @@ export function answer(system, user) {
     return JSON.stringify({ score: 72, verdict: '钩子够强，爽点释放偏快，卡点可以更狠。', dimensions: ['开场钩子', '冲突与压抑', '爽点爆发', '结尾卡点', '人设一致与记忆点', '台词传播力', '画面可拍性与动态分级', 'AI生成可行性'].map((name, i) => ({ name, score: 6 + (i % 4), comment: `${name}的模拟点评` })), issues: [{ step: 'script', problem: '压抑段太短', fix: '在退婚台词后加一段宾客嘲笑的反应镜头' }, { step: 'shots', problem: '第3-5镜都是中景', fix: '第4镜改成大特写' }], strengths: ['开场反差强'] })
   }
   if (system.includes('AI 视频导演')) {
-    const clips = [{ no: 1, shots: [1, 2], seconds: 6, mode: 'frames', refs: '首帧=第1镜分镜图；参考=林墨定妆图', prompt: 'Vertical 9:16, 3D Chinese animation style. A luxury banquet hall at night... The young man says in Mandarin, coldly: "这婚，我退了。" No subtitles, no on-screen text.', tips: '在 Flow 选 Frames to Video，上传第1镜图片作为首帧' }, { no: 2, shots: [3, 4, 5], seconds: 8, mode: 'ingredients', refs: '参考=林墨定妆图、苏婉定妆图', prompt: 'Vertical 9:16... Cut to: extreme close-up of a black card... No subtitles.', tips: '选 Ingredients to Video，上传两张定妆图' }]
+    const clips = [{ no: 1, shots: [1, 2], seconds: 6, mode: 'frames', refs: '首帧=第1镜分镜图；参考=林墨定妆图', gridPrompt: '2-panel storyboard grid, same banquet hall, same characters, no text, no watermark', prompt: 'Vertical 9:16, 3D Chinese animation style. A luxury banquet hall at night... The young man says in Mandarin, coldly: "这婚，我退了。" No subtitles, no on-screen text.', tips: '在 Flow 选 Frames to Video，上传第1镜图片作为首帧' }, { no: 2, shots: [3, 4, 5], seconds: 8, mode: 'ingredients', refs: '参考=林墨定妆图、苏婉定妆图', prompt: 'Vertical 9:16... Cut to: extreme close-up of a black card... No subtitles.', tips: '选 Ingredients to Video，上传两张定妆图' }]
     return JSON.stringify({ clips: scoped ? [{ ...clips[0], no: Number(scoped[1]), prompt: `${clips[0].prompt} (revised)` }] : clips })
   }
   if (system.includes('资深分镜师')) {

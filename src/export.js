@@ -5,10 +5,12 @@ import ExcelJS from 'exceljs'
 
 export const SHOT_COLUMNS = [
   ['no', '镜号', 6], ['image', '分镜图', 18], ['scene', '场景', 14], ['time', '时间/光线', 10], ['characters', '人物', 12], ['size', '景别', 8],
-  ['camera', '机位/运镜', 18], ['visual', '画面内容', 36], ['dialogue', '台词/旁白', 28], ['sound', '音效/音乐', 20], ['seconds', '时长(秒)', 8],
+  ['camera', '机位/运镜', 18],
+  ['blocking', '站位/朝向', 18], ['visual', '画面内容', 36],
+  ['acting', '表演', 20], ['dialogue', '台词/旁白', 28], ['sound', '音效/音乐', 20], ['seconds', '时长(秒)', 8],
   ['dynamic', '动态', 10], ['transition', '转场', 8], ['note', '备注', 16], ['imagePrompt', '分镜图提示词', 50],
 ]
-const CLIP_COLUMNS = [['no', '段落', 6], ['shots', '包含镜头', 10], ['seconds', '时长(秒)', 8], ['mode', '生成方式', 12], ['refs', '需要上传的素材', 28], ['prompt', '视频提示词（直接复制）', 80], ['tips', '操作提示', 30]]
+const CLIP_COLUMNS = [['no', '段落', 6], ['shots', '包含镜头', 10], ['seconds', '时长(秒)', 8], ['mode', '生成方式', 12], ['refs', '需要上传的素材', 28], ['prompt', '视频提示词（直接复制）', 80], ['gridPrompt', '宫格分镜图提示词', 50], ['tips', '操作提示', 30]]
 export const MODE_LABEL = { frames: '首尾帧', ingredients: '参考图', text: '纯文字', reference: '@素材引用' }
 
 function styleSheet(sheet, widths) {

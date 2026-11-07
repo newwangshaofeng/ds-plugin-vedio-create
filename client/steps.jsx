@@ -196,6 +196,10 @@ function ShotCard({ shot, ep, ratio }) {
         </div>
         <Field label="画面内容"><Area value={d.visual} onChange={v => set('visual', v)} /></Field>
         <div className="ds-grid2">
+          <Field label="人物站位/朝向" hint="多人镜头写清左右前后，避免穿帮"><Area value={d.blocking ?? ''} onChange={v => set('blocking', v)} /></Field>
+          <Field label="表情/眼神表演"><Area value={d.acting ?? ''} onChange={v => set('acting', v)} /></Field>
+        </div>
+        <div className="ds-grid2">
           <Field label="台词/旁白"><Area value={d.dialogue} onChange={v => set('dialogue', v)} /></Field>
           <Field label="音效/音乐"><Area value={d.sound} onChange={v => set('sound', v)} /></Field>
         </div>
@@ -245,6 +249,8 @@ function ClipCard({ clip, ep, shots, chars }) {
       ) : null}
       <Field label="需要上传的素材"><Area value={d.refs} onChange={v => set('refs', v)} /></Field>
       <Field label="提示词"><Area mono rows={6} value={d.prompt} onChange={v => set('prompt', v)} /></Field>
+      <Field label="宫格连贯分镜图提示词（可选）" hint="先用它在网页生成一张多宫格分镜，人物/场景更统一，再逐格当首帧"><Area mono rows={3} value={d.gridPrompt ?? ''} onChange={v => set('gridPrompt', v)} /></Field>
+      {d.gridPrompt ? <div className="ds-row"><CopyBtn text={d.gridPrompt} label="复制宫格提示词" /></div> : null}
       {clip.tips ? <p className="ds-tip">💡 {clip.tips}</p> : null}
       <SaveBar dirty={dirty} onSave={() => saveStep('clips', d, { scope: { no: clip.no } })} onReset={() => setD(clip)} />
       <AiBar step="clips" ep={ep} scope={{ no: clip.no }} has quick="clip" compact />
@@ -285,9 +291,22 @@ export function ReviewStep() {
           {review.strengths.length ? <><h3>亮点</h3><ul>{review.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul></> : null}
         </div>
       )}
+      <div className="ds-card">
+        <h3>发布前检查清单</h3>
+        <ul className="ds-checklist">{PUBLISH_CHECKS.map(t => <li key={t}><label><input type="checkbox" /> {t}</label></li>)}</ul>
+      </div>
     </section>
   )
 }
+
+const PUBLISH_CHECKS = [
+  '每段视频多生成 2-3 次，挑最好的片段截取拼接，再补音效和配乐',
+  '前 3 秒有冲突画面，30 秒内交代清楚冲突（开头慢就剪掉铺垫）',
+  '主角和配角的脸都是原创形象，不像任何真实明星/演员（拿截图问一下 AI 自查）',
+  '没有乱码字幕、平台水印和 logo',
+  '视频前 5 秒标注「AI 生成」或加 AI 水印，发布时勾选平台 AI 内容声明',
+  '不恶搞他人动漫/影视 IP',
+]
 
 function NextBtn({ step, label }) {
   return <div className="ds-next"><Btn kind="primary" onClick={() => setState({ step })}>{label} →</Btn></div>
