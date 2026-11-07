@@ -53,7 +53,7 @@ export async function exportCanvas(project, ep, filesDir) {
   const zip = {}
   const ratio = project.config?.ratio || '9:16'
   const link = (from, to) => connections.push({ id: `${from}->${to}`, fromNodeId: from, toNodeId: to })
-  const config = (id, x, y, title) => node(id, 'config', title, x, y, { generationMode: 'image', prompt: '', size: ratio, count: 1 })
+  const config = (id, x, y, title, size = ratio) => node(id, 'config', title, x, y, { generationMode: 'image', prompt: '', size, count: 1 })
   const addImage = async (id, file, title, x, y) => {
     if (!file) return false
     const buf = await readFile(join(filesDir, file)).catch(() => null)
@@ -75,7 +75,7 @@ export async function exportCanvas(project, ep, filesDir) {
   for (const [i, ch] of (project.characters ?? []).entries()) {
     const x = (i + 1) * COL
     nodes.push(node(ids.char(ch.id, 'text'), 'text', `角色·${ch.name} 定妆图提示词`, x, 0, { content: ch.imagePrompt || ch.appearance || ch.name }))
-    nodes.push(config(ids.char(ch.id, 'config'), x, ROW, `角色·${ch.name} 生图`))
+    nodes.push(config(ids.char(ch.id, 'config'), x, ROW, `角色·${ch.name} 生图`, '16:9'))
     link(ids.char(ch.id, 'text'), ids.char(ch.id, 'config'))
     if (await addImage(ids.char(ch.id, 'image'), ch.image, `角色·${ch.name}`, x, ROW * 2)) {
       link(ids.char(ch.id, 'config'), ids.char(ch.id, 'image'))
