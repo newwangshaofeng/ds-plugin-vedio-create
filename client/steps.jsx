@@ -255,6 +255,7 @@ function ClipCard({ clip, ep, shots, chars }) {
         <div className="ds-thumbs">{refs.map(r => <figure key={r.name}><a href={fileUrl(r.file)} download={r.name} title={`下载 ${r.name}`}><img src={fileUrl(r.file)} alt="" /></a><figcaption>{r.name.replace(/\.\w+$/, '').replace('-', ' ')}</figcaption></figure>)}</div>
       ) : null}
       {missing.length ? <p className="ds-tip">镜 {missing.join('、')} 还没上传分镜图，只靠提示词画面会不准，建议先回「分镜」步骤上传。</p> : null}
+      {d.story !== undefined ? <Field label="本段剧情（前后怎么接）"><Area rows={2} value={d.story} onChange={v => set('story', v)} /></Field> : null}
       <Field label="需要上传的素材"><Area value={d.refs} onChange={v => set('refs', v)} /></Field>
       <Field label="提示词"><Area mono rows={6} value={d.prompt} onChange={v => set('prompt', v)} /></Field>
       <Field label="宫格连贯分镜图提示词（可选）" hint="先用它在网页生成一张多宫格分镜，人物/场景更统一，再逐格当首帧"><Area mono rows={3} value={d.gridPrompt ?? ''} onChange={v => set('gridPrompt', v)} /></Field>

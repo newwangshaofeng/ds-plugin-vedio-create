@@ -10,7 +10,7 @@ export const SHOT_COLUMNS = [
   ['acting', '表演', 20], ['dialogue', '台词/旁白', 28], ['sound', '音效/音乐', 20], ['seconds', '时长(秒)', 8],
   ['dynamic', '动态', 10], ['transition', '转场', 8], ['note', '备注', 16], ['imagePrompt', '分镜图提示词', 50],
 ]
-const CLIP_COLUMNS = [['no', '段落', 6], ['shots', '包含镜头', 10], ['seconds', '时长(秒)', 8], ['mode', '生成方式', 12], ['refs', '需要上传的素材', 28], ['prompt', '视频提示词（直接复制）', 80], ['gridPrompt', '宫格分镜图提示词', 50], ['tips', '操作提示', 30]]
+const CLIP_COLUMNS = [['no', '段落', 6], ['shots', '包含镜头', 10], ['seconds', '时长(秒)', 8], ['mode', '生成方式', 12], ['story', '本段剧情', 30], ['refs', '需要上传的素材', 28], ['prompt', '视频提示词（直接复制）', 80], ['gridPrompt', '宫格分镜图提示词', 50], ['tips', '操作提示', 30]]
 export const MODE_LABEL = { frames: '首尾帧', ingredients: '参考图', text: '纯文字', reference: '@素材引用' }
 
 function styleSheet(sheet, widths) {

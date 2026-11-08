@@ -88,15 +88,27 @@ test('clipPack bundles the segment prompt with numbered reference images', async
     characters: [{ id: 'a', name: '林渊', image: 'c1.png' }, { id: 'b', name: '王梦瑶', image: 'c2.png' }, { id: 'c', name: '赵四海' }],
     episodeData: { 1: {
       shots: [{ no: 1, visual: '林渊推门', image: 's1.png' }, { no: 2, visual: '特写', image: 's2.jpg' }, { no: 3, visual: '王梦瑶冷笑' }],
-      clips: [{ no: 1, shots: [1, 2], mode: 'frames', refs: '首帧=镜1；参考=林渊定妆图', prompt: 'Vertical 9:16 ...' }, { no: 2, shots: [3], mode: 'ingredients', refs: '', prompt: 'P2' }]
+      clips: [{ no: 1, shots: [1, 2], mode: 'frames', story: '林渊被踩在地上，忍住不发作', refs: '首帧=镜1；参考=林渊定妆图', prompt: 'Vertical 9:16 ...' }, { no: 2, shots: [3], mode: 'ingredients', refs: '', prompt: 'P2' }]
     } }
   }
   const one = unzip(new Uint8Array(await clipPack(project, 1, 1, dir)))
   assert.deepEqual(Object.keys(one).sort(), ['图1-镜1分镜图.png', '图2-镜2分镜图.jpg', '图3-林渊定妆图.png', '提示词.txt', '说明.txt'].sort())
   assert.equal(str(one['提示词.txt']), 'Vertical 9:16 ...')
   assert.equal(str(one['图2-镜2分镜图.jpg']), 's2.jpg')
+  assert.match(str(one['说明.txt']), /本段剧情：林渊被踩在地上/)
   const all = unzip(new Uint8Array(await clipPack(project, 1, null, dir)))
   assert.ok(all['第2段/图1-王梦瑶定妆图.png'])
   assert.match(str(all['第2段/说明.txt']), /镜 3 还没上传分镜图/)
   await assert.rejects(clipPack(project, 1, 9, dir), /还没有视频提示词/)
+})
+
+test('script, shots and review prompts enforce story continuity; clips keep the story bridge', async () => {
+  const { scriptPrompts, rhythmPrompts, reviewPrompts, clipsPrompts } = await import('../src/prompts.js')
+  const { normalizeClip } = await import('../src/studio.js')
+  const project = { title: 't', config: {}, plan: { episodes: [{ no: 1 }] }, characters: [], episodeData: { 1: { script: '剧本正文', shots: [] } } }
+  for (const build of [scriptPrompts, rhythmPrompts]) assert.match(build(project, 1).system, /剧情连贯硬规则/)
+  assert.match(rhythmPrompts(project, 1).system, /剧情因果链/)
+  assert.match(reviewPrompts(project, 1).system, /"name":"剧情连贯"/)
+  assert.match(clipsPrompts(project, 1).user, /<script>剧本正文<\/script>/)
+  assert.equal(normalizeClip({ story: '承接上一段', prompt: 'p' }).story, '承接上一段')
 })

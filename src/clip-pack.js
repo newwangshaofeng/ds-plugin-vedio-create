@@ -20,6 +20,7 @@ async function addClip(zip, dir, clip, shots, chars, filesDir) {
   const missing = missingShots(clip, shots)
   zip[`${dir}说明.txt`] = strToU8([
     `第 ${clip.no} 段 · 镜头 ${(clip.shots ?? []).join('、')} · ${clip.seconds ?? ''} 秒`,
+    ...(clip.story ? [`本段剧情：${clip.story}`] : []),
     '',
     HOW[clip.mode] ?? HOW.ingredients,
     '',
