@@ -73,6 +73,15 @@ function prevEpisodeTail(project, no) {
   return prev.script.slice(-600)
 }
 
+/** 剧情连贯硬规则：剧本、分镜、体检共用，防止「上一句没铺垫、下一句突然冒出来」。 */
+const STORY_LOGIC = `剧情连贯硬规则（比金句更重要，观众看不懂就会划走）：
+- 因果链不断：每个动作/台词都要有触发它的前一拍（谁做了什么 → 对方怎么反应 → 因此做出什么决定），不能凭空冒出新情节。
+- 转折要给反应：局面翻转后（被反制、被打脸、身份暴露），先给吃亏一方一拍反应（震惊/恼羞成怒/改变策略，用台词或明确的表情动作），再进入下一个动作。
+- 挑战、赌约、威胁先交代动机和筹码：为什么提出（吃了亏想换个方式找回场子/想夺走某物）、赌什么（双方各自输了付出什么）、为什么对方会接受；用 1-2 句台词说清，不能直接甩出结论。
+- 对话是一来一回：一方抛出挑衅/条件后，另一方要接话或给出明确回应（接受、拒绝、反将一军），不能自说自话后跳到下一件事；主角话少也要用一个字或一个动作回应。
+- 新信息先铺垫：首次出现的人名、物件、关系、过往，要么前面交代过，要么在出现时一句话点明（如「那是阿泽留下的车」要让观众知道阿泽是谁）；人名、称呼、关系必须与人物小传一致，不要另起新名字。
+- 换场要有桥：从一个场景跳到下一个场景（如从修车厂到发车线），用一句台词、字幕或画面交代时间与因果（如「当晚」「赛前」），不要硬切。`
+
 // ———————————————————— 1 爆款策划 ————————————————————
 const PLAN_SHAPE = `{
 "title":"剧名，6-12字，有反差或悬念，像爆款短剧标题",
@@ -167,12 +176,16 @@ ${knowledge('rhythm')}
 ## 节奏表
 | 时间段 | 节奏 | 剧情内容 | 情绪 | 动态等级 | 爽点/冲突 |
 （覆盖整集，时间段连续）
+## 剧情因果链
+按时间顺序列 6-12 拍，每拍一行：「触发 → 反应 → 结果/决定」，挑战/赌约那一拍写清动机和双方筹码，换场那一拍写清时间与原因。剧本必须按这条链写，链上不能有跳步。
 ## 爽点设计
 - 核心爽点：类型 + 铺垫 + 释放 + 动态呈现
 - 小爽点 1..n
 ## 结尾卡点
 ## 自检
 （逐条对照审核标准打 ✅/⚠️，⚠️ 要写出已经怎么修正）
+
+${STORY_LOGIC}
 
 只输出 Markdown，不要代码块。${GUARD}`
   const user = `<material>${JSON.stringify({ 项目: projectBrief(project), 策划: planBrief(project.plan), 本集大纲: ep, 人物: characterBrief(project.characters), 上一集结尾: prevEpisodeTail(project, no) })}</material>`
@@ -195,10 +208,13 @@ ${knowledge('writing')}
 </writing_skill>
 
 额外要求：
-- 严格按 <rhythm> 节奏表推进，爽点位置和动态等级不能丢。
+- 严格按 <rhythm> 节奏表和「剧情因果链」推进，爽点位置和动态等级不能丢。
 - 台词短、狠、口语化，单句不超过 15 字，符合人设；关键反转台词要有记忆点（适合做切片传播）。
 - 角色外貌、口头禅、动作习惯与人物小传一致。
 - 开头直接进冲突，结尾停在卡点上。
+
+${STORY_LOGIC}
+写完后自己从头读一遍：如果某句台词删掉它前面一拍就看不懂，或者某个情节没有交代为什么发生，就补上那一拍（宁可删一个花哨动作，也要补足因果）。
 
 只输出剧本正文（Markdown），第一行是「# 第${no}集 ${ep.title || ''}」，不要代码块，不要额外解释。${GUARD}`
   const user = `<material>${JSON.stringify({ 项目: projectBrief(project), 策划: planBrief(project.plan), 本集大纲: ep, 人物: characterBrief(project.characters), 上一集结尾: prevEpisodeTail(project, no) })}</material>
@@ -239,7 +255,9 @@ ${knowledge('director')}
 - 所有镜头时长相加 ≈ ${seconds} 秒；单镜 2-6 秒，节奏快的段落多用 2-3 秒短镜头，镜头数大约 ${Math.round(seconds / 3.5)} 个。
 - 景别要有变化（不要连续 3 镜同景别）；对话戏用正反打+特写反应；爽点瞬间给特写/大特写+强动态。
 - 第 1 镜就是钩子画面；最后一镜停在卡点。
-- 剧本里的每句台词都要落到某一镜，不漏台词。
+- 剧本里的每句台词都要落到某一镜，不漏台词；剧本里的反应、动机、交代筹码、换场时间这些「承接拍」也要有镜头，不能为了省镜头只留动作大场面。
+- 剧情转折处（被反制、被打脸、提出挑战/赌约）先给受冲击一方的反应镜头（表情/台词），再接下一个动作；挑战或威胁的台词前后要有对方的回应镜头。
+- 镜头之间要能连成完整的故事：只看 visual+dialogue 两列，观众也能看懂每一镜为什么发生。
 - 用镜头讲故事：压抑段用俯拍/远景孤立主角，反击段用仰拍/推近/特写；多人镜头必须写清 blocking，避免穿帮和站桩。
 ${IMAGE_SAFE}
 - imagePrompt 统一画风「${project.plan?.visualStyle || c.style || ''}」、画幅 ${c.ratio || '9:16'}；人物每次出场都写上其不可变外貌特征，保证一致性。
@@ -268,6 +286,7 @@ ${''}`
 const CLIP_SHAPE = (target) => `{"clips":[{
 "no":1,"shots":[1,2],"seconds":${target === 'seedance' ? 10 : 8},
 "mode":"${target === 'seedance' ? 'reference' : 'frames'}（frames=首尾帧 / ingredients=参考图 / text=纯文字${target === 'seedance' ? ' / reference=@素材引用' : ''}）",
+"story":"本段剧情（中文一句话）：承接上一段结尾的什么 → 本段发生了什么 → 结束在什么状态，帮小白理解前后衔接",
 "refs":"需要上传哪些素材，如：首帧=第1镜分镜图；参考=林墨定妆图",
 "gridPrompt":"本段的宫格连贯分镜图提示词（英文）：一张图 N 宫格（N=本段镜头数，2-9），按镜头顺序每格一个画面，同一场景、同一组人物、同一色调与画风，写清每格景别+人物站位+动作；结尾 no text, no watermark。用于先生成连贯分镜再逐格做首帧，提升一致性",
 "prompt":"可直接复制到 ${target === 'seedance' ? 'Seedance 2.0' : 'Google Flow'} 的完整提示词",
@@ -284,23 +303,25 @@ export function clipsPrompts(project, no) {
 ${target === 'seedance' ? `${SEEDANCE_GUIDE}<seedance_skill>\n${knowledge('seedance')}\n</seedance_skill>` : FLOW_GUIDE}
 
 要求：
-- 按分镜顺序切段，不漏镜头、不打乱顺序；每段时长 ≤ ${target === 'seedance' ? 15 : 8} 秒，按镜头时长合并。
+- 按分镜顺序切段，不漏镜头、不打乱顺序；尽量不要把「一句挑衅/转折」和紧接着的「对方反应」切到两段里，段尾停在一个完整的情绪点上；每段时长 ≤ ${target === 'seedance' ? 15 : 8} 秒，按镜头时长合并。
 - 每段都写清人物的固定外貌（发型/服装/标志物），保证跨段一致；统一画风「${project.plan?.visualStyle || c.style || ''}」，画幅 ${c.ratio || '9:16'}。
 - 动作写成逐拍的具体动作，情绪用表情和肢体表达；爽点段落写明慢动作/推近/震屏等强化手段。
 - 有分镜图的镜头优先用首帧方式，并在 refs 里写清用哪张图；有定妆图的角色在 refs 里注明作为参考。
 - 台词保持中文原文。
+- 段与段要接得上：每段 prompt 开头用一句英文 Story context 交代人物此刻的处境与动机（接着上一段的什么），让模型演对情绪；人物位置、伤痕、道具状态与上一段结尾保持一致。
 - 写出每段的同期声与动作音效；tips 里提醒小白：同一段多生成 2-3 次挑最好的，后期截取拼接再配音效。
 
 只输出一个 JSON 对象，不要输出别的内容，结构：
 ${CLIP_SHAPE(target)}
 
 ${GUARD}`
-  const user = `<material>${JSON.stringify({ 项目: projectBrief(project), 人物: characterBrief(project.characters), 画风: project.plan?.visualStyle, 分镜表: shots })}</material>`
+  const user = `<material>${JSON.stringify({ 项目: projectBrief(project), 人物: characterBrief(project.characters), 画风: project.plan?.visualStyle, 分镜表: shots })}</material>
+<script>${(data.script || '').slice(0, 8000)}</script>`
   return { system, user, maxTokens: 32000, json: true }
 }
 
 // ———————————————————— 7 爆款体检 ————————————————————
-const REVIEW_SHAPE = `{"score":0-100,"verdict":"一句话结论","dimensions":[{"name":"开场钩子","score":0-10,"comment":"具体到镜头/台词"},{"name":"冲突与压抑","score":0,"comment":""},{"name":"爽点爆发","score":0,"comment":""},{"name":"结尾卡点","score":0,"comment":""},{"name":"人设一致与记忆点","score":0,"comment":""},{"name":"台词传播力","score":0,"comment":""},{"name":"画面可拍性与动态分级","score":0,"comment":""},{"name":"AI生成可行性","score":0,"comment":"分镜图/视频提示词是否具体、人物是否一致、站位是否清楚"},{"name":"前30秒留人","score":0,"comment":"前3秒钩子和30秒内的冲突交代"},{"name":"合规与发布风险","score":0,"comment":"配角是否原创脸、是否恶搞他人IP、是否提醒AI声明/水印"}],
+const REVIEW_SHAPE = `{"score":0-100,"verdict":"一句话结论","dimensions":[{"name":"开场钩子","score":0-10,"comment":"具体到镜头/台词"},{"name":"冲突与压抑","score":0,"comment":""},{"name":"剧情连贯","score":0,"comment":"因果是否断档、转折后有无反应、挑战/赌约有无动机和筹码、对话是否一来一回、换场是否有交代；指出具体镜头"},{"name":"爽点爆发","score":0,"comment":""},{"name":"结尾卡点","score":0,"comment":""},{"name":"人设一致与记忆点","score":0,"comment":""},{"name":"台词传播力","score":0,"comment":""},{"name":"画面可拍性与动态分级","score":0,"comment":""},{"name":"AI生成可行性","score":0,"comment":"分镜图/视频提示词是否具体、人物是否一致、站位是否清楚"},{"name":"前30秒留人","score":0,"comment":"前3秒钩子和30秒内的冲突交代"},{"name":"合规与发布风险","score":0,"comment":"配角是否原创脸、是否恶搞他人IP、是否提醒AI声明/水印"}],
 "issues":[{"step":"rhythm|script|shots|clips","problem":"问题","fix":"具体怎么改（可直接作为修改意见）"}],"strengths":["做得好的地方"]}`
 
 export function reviewPrompts(project, no) {
@@ -311,6 +332,7 @@ ${pacing(project.config?.epSeconds)}
 
 审核标准摘录：
 - 节奏：单集无平淡期超时；快慢切换自然；至少 1 个核心爽点，小爽点分布均匀；强动态 ≤3 处；爽点与人设自洽。
+- 剧情连贯：因果链不断；转折后有反应拍；挑战/赌约交代动机和筹码；对话一来一回；新人名/物件有铺垫且与人物小传一致；换场有时间/因果交代；相邻视频段能接上。发现断档必须写进 issues，fix 写清在哪两句/哪两镜之间补什么。
 - 剧本：格式规范；人设逻辑自洽；每段有情绪拐点；动作/动态可落地；台词口语化、单句短。
 - 分镜：序号连续；景别有变化；每句台词都有落点；动态/转场/音效标注完整；分镜图提示词具体且人物外貌一致。
 - 视频提示词：不漏镜头；每段时长合规；人物外貌每段都写；对白与音效完整；无字幕乱码风险。

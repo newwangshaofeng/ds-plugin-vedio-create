@@ -93,7 +93,7 @@ export function normalizeClip(c = {}) {
   const shots = asArray(c.shots).map(Number).filter(Number.isFinite)
   return {
     no: 0, shots, seconds: num(c.seconds, 1, 30, 8), mode: text(c.mode, 20).split(/[（(\s]/)[0] || 'text',
-    refs: text(c.refs, 400), prompt: text(c.prompt, 6000), gridPrompt: text(c.gridPrompt, 4000), tips: text(c.tips, 300),
+    story: text(c.story, 400), refs: text(c.refs, 400), prompt: text(c.prompt, 6000), gridPrompt: text(c.gridPrompt, 4000), tips: text(c.tips, 300),
   }
 }
 
