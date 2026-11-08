@@ -67,3 +67,11 @@ test('splitMergedItems restores shots the model glued together without },{', () 
   assert.equal(extractJson(text).shots.length, 1)
   assert.deepEqual(extractJson(splitMergedItems(text)).shots.map(s => s.visual), ['a', 'b'])
 })
+
+test('imageRequest wraps a copied prompt with an explicit generate-image instruction', async () => {
+  const { imageRequest } = await import('../src/image-request.js')
+  const text = imageRequest('  A 3D character sheet of a burly man. ', '16:9')
+  assert.match(text, /^请直接生成一张图片，画幅 16:9/)
+  assert.match(text, /Generate an image \(aspect ratio 16:9\): A 3D character sheet of a burly man\.$/)
+  assert.equal(imageRequest(''), '')
+})

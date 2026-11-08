@@ -123,6 +123,12 @@ const CHAR_SHAPE = `{"characters":[{
 "imagePrompt":"定妆图提示词（英文），用于在网页生图：单人全身+半身三视图角色设定图，写清年龄、脸型、发型、服装、配色、标志物、画风与光线，纯色背景，不要文字"
 }]}`
 
+const IMAGE_SAFE = `imagePrompt 要能在 GPT Image / 即梦等网页生图里一次通过审核（生图安全用词）：
+- 写成一段画面描述，开头直接写画面主体（如 "A 3D character sheet of ..."），不要写给人看的说明、标题或选项。
+- 不写血腥、伤口特写、尸体、武器对准人、正在施暴的动作；凶狠/危险感用表情、眼神、站姿、光影和色调表现（如 stern glare, looming pose, harsh rim light）。
+- 不写任何真实明星、品牌、商标、动漫 IP 的名字；不写 celebrity、real person 这类词，原创脸只写 original character design, unique fictional face。
+- 未成年角色不和暴力、性感、危险情节同框；成年角色服装得体，不写暴露、诱惑类词。`
+
 export function charactersPrompts(project) {
   const system = `你是专业的动态漫/短剧角色设计师。根据策划案为本剧的主要角色（主角、对手、反派、关键配角，3-6 人）写人物小传，并给出可直接用于AI生图的定妆图提示词。
 
@@ -131,7 +137,8 @@ export function charactersPrompts(project) {
 ${knowledge('character')}
 </character_skill>
 
-所有角色（包括配角）必须是原创形象：外貌不能像任何真实明星或演员，imagePrompt 里写上 original character design, does not resemble any real person or celebrity（AI 剧已有因配角撞脸真人演员被下架的案例）。
+所有角色（包括配角）必须是原创形象：外貌不能像任何真实明星或演员，imagePrompt 里写上 original character design, unique fictional face（AI 剧已有因配角撞脸真人演员被下架的案例）。
+${IMAGE_SAFE}
 定妆图提示词统一使用策划案里的画风「${project.plan?.visualStyle || project.config?.style || ''}」，画幅不限（角色设定图建议 16:9 三视图）。
 
 只输出一个 JSON 对象，不要输出别的内容，结构：
@@ -209,7 +216,7 @@ const SHOT_SHAPE = `{"shots":[{
 "dialogue":"台词/旁白，格式【角色名（情绪）】台词；没有写 无",
 "sound":"【环境】【动作】【配乐】音效，同期声具体到物体（如：扶手被捏裂的咯吱声）","seconds":3,
 "dynamic":"动・基础/动・中度/动・特效","transition":"切/淡入/淡出/虚入/虚出/闪白/光斑转场","note":"备注，重要动态用▲",
-"imagePrompt":"分镜图提示词（英文），用于网页生成这一镜的首帧画面：画幅、景别与机位、人物（引用其固定外貌）与站位朝向、动作表情、场景、光线、画风；结尾加 no text, no subtitles, no watermark, no logo"
+"imagePrompt":"分镜图提示词（英文，遵守生图安全用词），用于网页生成这一镜的首帧画面：画幅、景别与机位、人物（引用其固定外貌）与站位朝向、动作表情、场景、光线、画风；结尾加 no text, no subtitles, no watermark, no logo"
 }]}`
 
 export function shotsPrompts(project, no) {
@@ -234,6 +241,7 @@ ${knowledge('director')}
 - 第 1 镜就是钩子画面；最后一镜停在卡点。
 - 剧本里的每句台词都要落到某一镜，不漏台词。
 - 用镜头讲故事：压抑段用俯拍/远景孤立主角，反击段用仰拍/推近/特写；多人镜头必须写清 blocking，避免穿帮和站桩。
+${IMAGE_SAFE}
 - imagePrompt 统一画风「${project.plan?.visualStyle || c.style || ''}」、画幅 ${c.ratio || '9:16'}；人物每次出场都写上其不可变外貌特征，保证一致性。
 
 只输出一个 JSON 对象，不要输出别的内容，结构：

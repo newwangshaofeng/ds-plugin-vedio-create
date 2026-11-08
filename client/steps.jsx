@@ -1,5 +1,6 @@
 import React from 'react'
 import { download, exportCanvas, importCanvas, fileUrl, generate, saveStep, setState, uploadImage, useStudio, api, loadProject, safe } from './api.js'
+import { imageRequest } from '../src/image-request.js'
 import { AiBar, Area, Btn, CopyBtn, Empty, Field, History, SaveBar, useDraft } from './ui.jsx'
 
 const FLOW_URL = 'https://labs.google/fx/tools/flow'
@@ -58,7 +59,7 @@ export function PlanStep() {
   )
 }
 
-function ImageSlot({ image, slot, prompt, ratio = '9:16' }) {
+function ImageSlot({ image, slot, prompt, ratio = '9:16', genRatio = ratio }) {
   const input = React.useRef(null)
   const [over, setOver] = React.useState(false)
   const pick = files => files?.[0] && uploadImage(files[0], slot)
@@ -71,7 +72,7 @@ function ImageSlot({ image, slot, prompt, ratio = '9:16' }) {
       {image ? <img src={fileUrl(image)} alt="" /> : <div className="ds-slot-empty"><span>复制提示词去网页生图<br />再把图片拖到/粘贴到这里</span></div>}
       <div className="ds-slot-actions">
         <Btn kind="sm" onClick={() => input.current.click()}>{image ? '换图' : '上传'}</Btn>
-        {prompt ? <CopyBtn text={prompt} label="复制提示词" /> : null}
+        {prompt ? <CopyBtn text={imageRequest(prompt, genRatio)} label="复制提示词" /> : null}
         {image ? <Btn kind="sm" onClick={clear}>移除</Btn> : null}
       </div>
       <input ref={input} type="file" accept="image/*" hidden onChange={e => { pick(e.target.files); e.target.value = '' }} />
@@ -102,7 +103,7 @@ function CharacterCard({ ch }) {
   const [more, setMore] = React.useState(false)
   return (
     <div className="ds-card ds-char">
-      <ImageSlot image={ch.image} slot={{ kind: 'character', cid: ch.id }} prompt={ch.imagePrompt} ratio="3:4" />
+      <ImageSlot image={ch.image} slot={{ kind: 'character', cid: ch.id }} prompt={ch.imagePrompt} ratio="3:4" genRatio="16:9" />
       <div className="ds-char-body">
         <div className="ds-grid3">
           <Field label="姓名"><input className="ds-input" value={d.name} onChange={e => set('name', e.target.value)} /></Field>
@@ -251,7 +252,7 @@ function ClipCard({ clip, ep, shots, chars }) {
       <Field label="需要上传的素材"><Area value={d.refs} onChange={v => set('refs', v)} /></Field>
       <Field label="提示词"><Area mono rows={6} value={d.prompt} onChange={v => set('prompt', v)} /></Field>
       <Field label="宫格连贯分镜图提示词（可选）" hint="先用它在网页生成一张多宫格分镜，人物/场景更统一，再逐格当首帧"><Area mono rows={3} value={d.gridPrompt ?? ''} onChange={v => set('gridPrompt', v)} /></Field>
-      {d.gridPrompt ? <div className="ds-row"><CopyBtn text={d.gridPrompt} label="复制宫格提示词" /></div> : null}
+      {d.gridPrompt ? <div className="ds-row"><CopyBtn text={imageRequest(d.gridPrompt)} label="复制宫格提示词" /></div> : null}
       {clip.tips ? <p className="ds-tip">💡 {clip.tips}</p> : null}
       <SaveBar dirty={dirty} onSave={() => saveStep('clips', d, { scope: { no: clip.no } })} onReset={() => setD(clip)} />
       <AiBar step="clips" ep={ep} scope={{ no: clip.no }} has quick="clip" compact />
