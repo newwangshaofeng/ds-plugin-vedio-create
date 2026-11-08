@@ -125,6 +125,18 @@ export async function exportCanvas(ep) {
   })
 }
 
+export async function downloadClipPack(ep, no) {
+  await safe(async () => {
+    const res = await fetch(`${BASE}clip-pack?id=${encodeURIComponent(state.projectId)}&ep=${ep}${no ? `&no=${no}` : ''}`)
+    if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || '下载失败')
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(await res.blob())
+    a.download = `${state.project?.title || '短剧'}-第${ep}集${no ? `-第${no}段` : ''}-视频素材.zip`
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000)
+  })
+}
+
 export async function importCanvas(file, ep) {
   if (!file) return
   await safe(async () => {

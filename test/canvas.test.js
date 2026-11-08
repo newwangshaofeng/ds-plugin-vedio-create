@@ -75,3 +75,28 @@ test('imageRequest wraps a copied prompt with an explicit generate-image instruc
   assert.match(text, /Generate an image \(aspect ratio 16:9\): A 3D character sheet of a burly man\.$/)
   assert.equal(imageRequest(''), '')
 })
+
+test('clipPack bundles the segment prompt with numbered reference images', async () => {
+  const { mkdtemp, writeFile: write } = await import('node:fs/promises')
+  const { tmpdir } = await import('node:os')
+  const { join: pjoin } = await import('node:path')
+  const { unzipSync: unzip, strFromU8: str } = await import('fflate')
+  const { clipPack } = await import('../src/clip-pack.js')
+  const dir = await mkdtemp(pjoin(tmpdir(), 'clip-pack-'))
+  for (const f of ['s1.png', 's2.jpg', 'c1.png', 'c2.png']) await write(pjoin(dir, f), Buffer.from(f))
+  const project = {
+    characters: [{ id: 'a', name: '林渊', image: 'c1.png' }, { id: 'b', name: '王梦瑶', image: 'c2.png' }, { id: 'c', name: '赵四海' }],
+    episodeData: { 1: {
+      shots: [{ no: 1, visual: '林渊推门', image: 's1.png' }, { no: 2, visual: '特写', image: 's2.jpg' }, { no: 3, visual: '王梦瑶冷笑' }],
+      clips: [{ no: 1, shots: [1, 2], mode: 'frames', refs: '首帧=镜1；参考=林渊定妆图', prompt: 'Vertical 9:16 ...' }, { no: 2, shots: [3], mode: 'ingredients', refs: '', prompt: 'P2' }]
+    } }
+  }
+  const one = unzip(new Uint8Array(await clipPack(project, 1, 1, dir)))
+  assert.deepEqual(Object.keys(one).sort(), ['图1-镜1分镜图.png', '图2-镜2分镜图.jpg', '图3-林渊定妆图.png', '提示词.txt', '说明.txt'].sort())
+  assert.equal(str(one['提示词.txt']), 'Vertical 9:16 ...')
+  assert.equal(str(one['图2-镜2分镜图.jpg']), 's2.jpg')
+  const all = unzip(new Uint8Array(await clipPack(project, 1, null, dir)))
+  assert.ok(all['第2段/图1-王梦瑶定妆图.png'])
+  assert.match(str(all['第2段/说明.txt']), /镜 3 还没上传分镜图/)
+  await assert.rejects(clipPack(project, 1, 9, dir), /还没有视频提示词/)
+})

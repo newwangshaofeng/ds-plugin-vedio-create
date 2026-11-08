@@ -1,6 +1,7 @@
 import React from 'react'
-import { download, exportCanvas, importCanvas, fileUrl, generate, saveStep, setState, uploadImage, useStudio, api, loadProject, safe } from './api.js'
+import { download, downloadClipPack, exportCanvas, importCanvas, fileUrl, generate, saveStep, setState, uploadImage, useStudio, api, loadProject, safe } from './api.js'
 import { imageRequest } from '../src/image-request.js'
+import { clipRefs, missingShots } from '../src/clip-refs.js'
 import { AiBar, Area, Btn, CopyBtn, Empty, Field, History, SaveBar, useDraft } from './ui.jsx'
 
 const FLOW_URL = 'https://labs.google/fx/tools/flow'
@@ -227,6 +228,7 @@ export function ClipsStep() {
       <StepHead step="clips" ep={ep} title={`⑤ 第${ep}集 · 视频提示词`} desc={target === 'seedance' ? 'Seedance 2.0：按 @素材 引用上传的分镜图/定妆图，每段 4-15 秒。' : 'Google Flow（Veo）：每段 8 秒。有分镜图的用「首尾帧」，人物用定妆图做「参考图」，复制提示词粘贴即可。'}>
         <div className="ds-seg">{[['flow', 'Google Flow'], ['seedance', 'Seedance 2.0']].map(([k, l]) => <button type="button" key={k} className={target === k ? 'is-on' : ''} onClick={() => setTarget(k)}>{l}</button>)}</div>
         {target === 'flow' ? <a className="ds-btn" href={FLOW_URL} target="_blank" rel="noreferrer">打开 Google Flow</a> : null}
+        {clips.length ? <Btn onClick={() => downloadClipPack(ep)}>下载本集全部素材</Btn> : null}
       </StepHead>
       <AiBar step="clips" ep={ep} has={clips.length > 0} label="视频提示词" />
       {!clips.length ? <Empty>需要先有分镜表。点「AI 生成视频提示词」。</Empty> : clips.map(c => <ClipCard key={`${ep}-${c.no}`} clip={c} ep={ep} shots={shots} chars={project.characters} />)}
@@ -238,17 +240,21 @@ export function ClipsStep() {
 function ClipCard({ clip, ep, shots, chars }) {
   const [d, setD, dirty] = useDraft(clip)
   const set = (k, v) => setD({ ...d, [k]: v })
-  const imgs = clip.shots.map(n => shots[n - 1]).filter(s => s?.image)
-  const charImgs = chars.filter(c => c.image && clip.refs.includes(c.name))
+  const refs = clipRefs(d, shots, chars)
+  const missing = missingShots(d, shots)
   return (
     <div className="ds-card">
       <div className="ds-row ds-between">
         <b>第 {clip.no} 段 · 镜头 {clip.shots.join('、')} · {clip.seconds} 秒 · {MODE[clip.mode] || clip.mode}</b>
-        <CopyBtn text={d.prompt} label="复制提示词" />
+        <div className="ds-row">
+          <CopyBtn text={d.prompt} label="复制提示词" />
+          <Btn kind="sm" onClick={() => downloadClipPack(ep, clip.no)}>下载本段素材（提示词+参考图）</Btn>
+        </div>
       </div>
-      {imgs.length || charImgs.length ? (
-        <div className="ds-thumbs">{imgs.map(s => <figure key={s.no}><img src={fileUrl(s.image)} alt="" /><figcaption>镜{s.no}</figcaption></figure>)}{charImgs.map(c => <figure key={c.id}><img src={fileUrl(c.image)} alt="" /><figcaption>{c.name}</figcaption></figure>)}</div>
+      {refs.length ? (
+        <div className="ds-thumbs">{refs.map(r => <figure key={r.name}><a href={fileUrl(r.file)} download={r.name} title={`下载 ${r.name}`}><img src={fileUrl(r.file)} alt="" /></a><figcaption>{r.name.replace(/\.\w+$/, '').replace('-', ' ')}</figcaption></figure>)}</div>
       ) : null}
+      {missing.length ? <p className="ds-tip">镜 {missing.join('、')} 还没上传分镜图，只靠提示词画面会不准，建议先回「分镜」步骤上传。</p> : null}
       <Field label="需要上传的素材"><Area value={d.refs} onChange={v => set('refs', v)} /></Field>
       <Field label="提示词"><Area mono rows={6} value={d.prompt} onChange={v => set('prompt', v)} /></Field>
       <Field label="宫格连贯分镜图提示词（可选）" hint="先用它在网页生成一张多宫格分镜，人物/场景更统一，再逐格当首帧"><Area mono rows={3} value={d.gridPrompt ?? ''} onChange={v => set('gridPrompt', v)} /></Field>
