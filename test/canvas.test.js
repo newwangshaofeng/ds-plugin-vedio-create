@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
 import { exportCanvas, importCanvas, imageSize } from '../src/canvas.js'
-import { extractJson } from '../src/ai.js'
+import { extractJson, splitMergedItems } from '../src/ai.js'
 
 const PNG = Buffer.from('89504e470d0a1a0a0000000d49484452000000020000000308060000009a', 'hex')
 
@@ -52,4 +52,17 @@ test('exportCanvas builds an infinite-canvas v3 package and importCanvas reads g
 test('extractJson salvages a truncated shot list', () => {
   const text = '{"shots":[{"no":1,"visual":"a \\"q\\" }"},{"no":2,"visual":"b"},{"no":3,"vis'
   assert.deepEqual(extractJson(text).shots.map(s => s.no), [1, 2])
+})
+
+test('extractJson tolerates unescaped quotes and newlines inside Chinese dialogue', () => {
+  const text = '{"shots":[{"no":1,"dialogue":"他冷笑："你也配？"","note":"第一行\n第二行"},{"no":2,"dialogue":"她说"走"'
+  const shots = extractJson(text).shots
+  assert.equal(shots[0].dialogue, '他冷笑："你也配？"')
+  assert.equal(shots[0].note, '第一行\n第二行')
+})
+
+test('splitMergedItems restores shots the model glued together without },{', () => {
+  const text = '{"shots":[{"no":1,"visual":"a","seconds":2,"no":2,"visual":"b"}]}'
+  assert.equal(extractJson(text).shots.length, 1)
+  assert.deepEqual(extractJson(splitMergedItems(text)).shots.map(s => s.visual), ['a', 'b'])
 })

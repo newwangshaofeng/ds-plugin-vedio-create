@@ -75,17 +75,59 @@ export function extractJson(text) {
   const end = Math.max(body.lastIndexOf('}'), body.lastIndexOf(']'))
   if (start < 0 || end < start) throw new Error('模型没有返回 JSON')
   const raw = body.slice(start, end + 1)
-  try {
-    return JSON.parse(raw)
-  } catch {
+  const attempts = [
+    () => raw,
+    () => raw.replace(/,\s*([}\]])/g, '$1'),
+    () => repairQuotes(raw),
+    () => repairTruncated(body.slice(start)),
+    () => repairTruncated(repairQuotes(body.slice(start))),
+  ]
+  let error
+  for (const attempt of attempts) {
+    const candidate = attempt()
+    if (!candidate) continue
     try {
-      return JSON.parse(raw.replace(/,\s*([}\]])/g, '$1'))
+      return JSON.parse(candidate)
     } catch (err) {
-      const repaired = repairTruncated(body.slice(start))
-      if (!repaired) throw err
-      return JSON.parse(repaired)
+      error ??= err
     }
   }
+  throw error
+}
+
+/** 模型常在中文台词里直接用英文双引号（"他说"走""），或在字符串里换行；把这些引号转义、换行改成 \n。 */
+const NON_SPACE = /\S/g
+
+export function repairQuotes(text) {
+  let out = ''
+  let inString = false
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]
+    if (!inString) {
+      if (ch === '"') inString = true
+      out += ch
+      continue
+    }
+    if (ch === '\\') {
+      out += ch + (text[i + 1] ?? '')
+      i++
+    } else if (ch === '\n') out += '\\n'
+    else if (ch === '\r') continue
+    else if (ch === '"') {
+      NON_SPACE.lastIndex = i + 1
+      const next = NON_SPACE.exec(text)?.[0]
+      if (!next || ',:}]'.includes(next)) {
+        inString = false
+        out += ch
+      } else out += '\\"'
+    } else out += ch
+  }
+  return out
+}
+
+/** 模型偶尔漏写相邻两条之间的 `},{`，导致多镜挤进一个对象、只剩最后一镜；在第二个 "no" 键前补回。 */
+export function splitMergedItems(text) {
+  return text.replace(/([^{\s])(\s*),(\s*)"no"(\s*):/g, '$1},{$3"no"$4:')
 }
 
 /** 输出被截断时（长分镜表常见），保留到最后一个完整的数组元素，再补齐括号。 */

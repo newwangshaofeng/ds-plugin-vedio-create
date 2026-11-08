@@ -1,6 +1,6 @@
 // 短剧工作台流水线：生成、按意见修改、手动保存、历史版本和后台任务。
 import { randomUUID } from 'node:crypto'
-import { extractJson, stripFence } from './ai.js'
+import { extractJson, splitMergedItems, stripFence } from './ai.js'
 import {
   charactersPrompts, clipsPrompts, planPrompts, reviewPrompts, revisePrompts, rhythmPrompts, scriptPrompts, shotsPrompts, STEP_LABEL,
   withEvolved,
@@ -208,6 +208,18 @@ function stripImages(value) {
   return JSON.parse(JSON.stringify(value ?? null, (key, v) => (key === 'image' || key === 'history' ? undefined : v)))
 }
 
+function recoverMergedItems(step, parsed, output) {
+  if (!['shots', 'clips'].includes(step) || !Array.isArray(parsed?.[step])) return parsed
+  const keys = output.match(/"no"\s*:/g)?.length ?? 0
+  if (keys <= parsed[step].length) return parsed
+  try {
+    const split = extractJson(splitMergedItems(output))
+    return split?.[step]?.length > parsed[step].length ? split : parsed
+  } catch {
+    return parsed
+  }
+}
+
 /** 后台任务：模型调用可能要一两分钟，前端轮询进度并实时看到正在写的文字。 */
 export class Studio {
   constructor({ store, callText }) {
@@ -261,6 +273,7 @@ export class Studio {
         let parsed
         try {
           parsed = prompts.json ? extractJson(output) : output
+          parsed = recoverMergedItems(step, parsed, output)
         } catch {
           throw new Error('模型输出格式不对，请重试一次（或换一个更强的模型）')
         }
