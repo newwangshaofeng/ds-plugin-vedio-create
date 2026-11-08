@@ -5,6 +5,7 @@ import { extname, join } from 'node:path'
 import { callModel, defaultSelection, modelInfo, modelStatus } from './ai.js'
 import { exportMarkdown, exportXlsx } from './export.js'
 import { exportCanvas, importCanvas } from './canvas.js'
+import { clipPack } from './clip-pack.js'
 import { createProject, episode, EPISODE_STEPS, getValue, historyKey, newId, normalizeConfig, normalizeStep, setValue, STEPS, Studio } from './studio.js'
 import { Store } from './store.js'
 
@@ -117,6 +118,15 @@ export async function route(ctx, store, studio, req, res) {
       const buffer = await exportCanvas(project, ep, store.filesDir)
       res.setHeader('content-type', 'application/zip')
       res.setHeader('content-disposition', `attachment; filename*=UTF-8''${encodeURIComponent(`${project.title || 'drama'}-第${ep}集-无限画布`)}.zip`)
+      return res.end(buffer)
+    }
+    if (path === 'clip-pack') {
+      const project = findProject(await store.read(), q.id)
+      const ep = Number(q.ep) || 1
+      const no = q.no ? Number(q.no) : null
+      const buffer = await clipPack(project, ep, no, store.filesDir)
+      res.setHeader('content-type', 'application/zip')
+      res.setHeader('content-disposition', `attachment; filename*=UTF-8''${encodeURIComponent(`${project.title || 'drama'}-第${ep}集${no ? `-第${no}段` : ''}-视频素材`)}.zip`)
       return res.end(buffer)
     }
     if (path === 'export') {
