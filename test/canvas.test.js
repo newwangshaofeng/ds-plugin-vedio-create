@@ -32,6 +32,7 @@ test('exportCanvas builds an infinite-canvas v3 package and importCanvas reads g
   const canvas = data.projects[0].project
   const byId = Object.fromEntries(canvas.nodes.map(n => [n.id, n]))
   assert.equal(byId['ds-shot-1-1-text'].metadata.content, 'shot1')
+  for (const n of canvas.nodes.filter(n => n.type === 'image')) assert.ok(n.metadata.content, 'infinite-canvas only hydrates image nodes with non-empty content')
   assert.equal(byId['ds-shot-1-1-config'].metadata.generationMode, 'image')
   assert.ok(canvas.connections.some(c => c.fromNodeId === 'ds-char-c1-image' && c.toNodeId === 'ds-shot-1-1-config'))
   assert.ok(!canvas.connections.some(c => c.fromNodeId === 'ds-char-c1-image' && c.toNodeId === 'ds-shot-1-2-config'))

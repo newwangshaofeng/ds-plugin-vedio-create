@@ -64,7 +64,7 @@ export async function exportCanvas(project, ep, filesDir) {
     const path = `projects/${project.id}/files/${id}${extname(file).toLowerCase() || '.png'}`
     zip[path] = new Uint8Array(buf)
     files.push({ storageKey, path, mimeType, bytes: buf.length })
-    nodes.push(node(id, 'image', title, x, y, { content: '', storageKey, naturalWidth: natural.width, naturalHeight: natural.height, bytes: buf.length, mimeType }, fit(natural)))
+    nodes.push(node(id, 'image', title, x, y, { content: storageKey, storageKey, naturalWidth: natural.width, naturalHeight: natural.height, bytes: buf.length, mimeType }, fit(natural)))
     return true
   }
 
